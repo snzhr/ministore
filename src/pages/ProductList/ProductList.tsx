@@ -1,16 +1,18 @@
 import React from 'react'
 
 import { useState, useEffect } from 'react';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchProducts, fetchCategories } from '../../apis/product.api';
 import styles from './ProductList.module.scss'
-import type { Category } from '../../models/product';
+import type { Category, Product } from '../../models/product';
 import { useNavigate } from 'react-router-dom';
+import { addCart } from '../../apis/cart.api';
 
 export const ProductList = () => {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,10 +36,16 @@ export const ProductList = () => {
     },
   });
 
-  const products = productsQuery.data?.pages.flat() || [];
+  const mutation = useMutation({
+    mutationKey: ["cart", 1],
+    mutationFn: addCart,
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["cart", 1] as const});
+    },
+  })
 
-  console.log(productsQuery.data);
-  
+  const products:Product[] | unknown = productsQuery.data?.pages.flat() || [];
+
 
 
   return (
@@ -55,7 +63,7 @@ export const ProductList = () => {
         >
           <option value="">All Categories</option>
           {categoriesQuery.data?.map((cat: Category) => (
-            <option key={cat.name} value={cat.name}>
+            <option key={cat.name} value={cat.slug}>
               {cat.name}
             </option>
           ))}
@@ -63,11 +71,12 @@ export const ProductList = () => {
       </div>
 
       <div className={styles.grid}>
-        {products.map((product: any) => (
-          <div key={product.id} className={styles.card} onClick={() => navigate(`/product/${product.id}`)}>
+        {(products as Product[]).map((product: Product) => (
+          <div key={product.id} className={styles.card}>
             <img src={product.images[0]} alt="image" />
-            <h3>{product.title}</h3>
+            <h3 onClick={() => navigate(`/product/${product.id}`)}>{product.title}</h3>
             <p>${product.price}</p>
+            <button onClick={() => mutation.mutate({id: product.id, quantity: 1})}>Add to cart</button>
           </div>
         ))}
       </div>

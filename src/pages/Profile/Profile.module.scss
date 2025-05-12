@@ -1,0 +1,19 @@
+.profile {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+
+  & > div {
+    padding: 20px;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    height: fit-content;
+    border-radius: 10px;
+    text-align: center;
+
+    img {
+      border-radius: 10px;
+    }
+  }
+
+}

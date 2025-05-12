@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchProductById } from '../../apis/product.api';
 import styles from './ProductDetail.module.scss';
 import type { Product } from '../../models/product';
+import Toast from '../../components/Toast/Toast';
 
 export const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,8 +15,15 @@ export const ProductDetail = () => {
     enabled: !!productId,
   });
 
-  if (isLoading) return <div className={styles.container}>Loading product...</div>;
-  if (isError || !data) return <div className={styles.container}>Product not found.</div>;
+  if (isLoading){
+    return (<div>
+      loading...
+    </div>
+    )
+  };
+  if (isError || !data){
+    return <Toast message='Product not found' mode='danger' />
+  };
 
   return (
     <div className={styles.container}>

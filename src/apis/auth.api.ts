@@ -10,3 +10,8 @@ type LoginResponse = {
     return res.data;
   }
   
+
+  export async function getUser() {
+    const res = await api.get("/auth/profile");
+    return res.data;
+}

@@ -7,11 +7,12 @@ const ProductListPage = lazy(() => import("../pages/ProductList/ProductList"));
 const ProductDetailPage = lazy(() => import("../pages/ProductDetail/ProductDetail"));
 const CartPage = lazy(() => import("../pages/Cart/Cart"));
 const ProfilePage = lazy(() => import("../pages/Profile/Profile"));
+const NotFoundPage = lazy(() => import("../pages/NotFound/NotFound"));
 
 const routes: RouteObject[] = [
   {
     path: "",
-    Component: App,
+    element: <App />,
     children: [
       {
         index: true,
@@ -37,6 +38,7 @@ const routes: RouteObject[] = [
         path: "/profile",
         element: <ProfilePage />
       },
+      { path: "*", element: <NotFoundPage /> },
     ],
   },
 ];
