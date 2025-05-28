@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import styles from "./Login.module.scss";
 import { login } from "../../apis/auth.api";
+import Button from "../../components/ui/Button/Button";
 
 export const Login = () => {
   const [email, setEmail] = useState("john@mail.com");
@@ -14,6 +15,7 @@ export const Login = () => {
     mutationFn: login,
     onSuccess: (data) => {
       localStorage.setItem("token", data.access_token);
+      localStorage.setItem("refresh_token", data.refresh_token);
       queryClient.setQueryData(["auth"], { token: data.access_token });
       navigate("/products");
     },
@@ -45,9 +47,7 @@ export const Login = () => {
           placeholder="Password"
           className={styles.input}
         />
-        <button type="submit" disabled={isPending} className={styles.button}>
-          {isPending ? "Logging in..." : "Login"}
-        </button>
+        <Button label="Login" type="submit" loading={isPending} />
       </form>
     </div>
   );

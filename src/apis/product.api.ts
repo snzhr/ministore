@@ -5,12 +5,14 @@ export async function fetchProducts({
   pageParam = 0,
   search = "",
   category = "",
+  limit = 20
 }: {
   pageParam?: number;
   search?: string;
   category?: string;
+  limit?: number;
 }): Promise<Product[]> {
-  let query = `/products?offset=${pageParam}&limit=20`;
+  let query = `/products?offset=${pageParam}&limit=${limit}`;
   if (search) query += `&title=${search}`;
   if (category) query += `&categorySlug=${category}`;
 
@@ -24,6 +26,6 @@ export async function fetchCategories(): Promise<Category[]> {
 }
 
 export async function fetchProductById(id: number): Promise<Product> {
-  const res = await api.get<Product>(`/product/${id}`);
+  const res = await api.get<Product>(`/products/${id}`);
   return res.data;
 }

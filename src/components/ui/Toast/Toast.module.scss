@@ -11,7 +11,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-    
+  transform: translateY(-50px);
+  transition: all 3s linear;
+
+  &.visible{
+  transform: translateY(0);
+  }
 
 
   &.success {

@@ -1,8 +1,9 @@
-import type { UserCredentials } from "../models/user";
+import type { User, UserCredentials } from "../models/user";
 import { api } from "./axios.api";
 
 type LoginResponse = {
     access_token: string;
+    refresh_token: string;
   };
   
   export async function login(credentials: UserCredentials): Promise<LoginResponse> {
@@ -11,7 +12,7 @@ type LoginResponse = {
   }
   
 
-  export async function getUser() {
+  export async function getUser():Promise<User> {
     const res = await api.get("/auth/profile");
     return res.data;
 }

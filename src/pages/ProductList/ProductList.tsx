@@ -1,33 +1,35 @@
-import React from 'react'
-
-import { useState, useEffect } from 'react';
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchProducts, fetchCategories } from '../../apis/product.api';
-import styles from './ProductList.module.scss'
-import type { Category, Product } from '../../models/product';
-import { useNavigate } from 'react-router-dom';
-import { addCart } from '../../apis/cart.api';
+import { useState } from "react";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  fetchProducts,
+  fetchCategories,
+  fetchProductById,
+} from "../../apis/product.api";
+import styles from "./ProductList.module.scss";
+import type { Category, Product } from "../../models/product";
+import Skeleton from "../../components/ui/Skeleton/Skeleton";
+import useDebounce from "../../hooks/useDebounce";
+import SingleProduct from "../../components/layout/Product/SingleProduct";
+import Button from "../../components/ui/Button/Button";
 
 export const ProductList = () => {
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const debouncedSearch = useDebounce(search, 500);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const timeout = setTimeout(() => setDebouncedSearch(search), 500);
-    return () => clearTimeout(timeout);
-  }, [search]);
 
   const categoriesQuery = useQuery({
-    queryKey: ['categories'],
+    queryKey: ["categories"],
     queryFn: fetchCategories,
     staleTime: 1000 * 60 * 60 * 24,
   });
 
   const productsQuery = useInfiniteQuery({
-    queryKey: ['products', debouncedSearch, category],
+    queryKey: ["products", debouncedSearch, category],
     queryFn: ({ pageParam = 0 }) =>
       fetchProducts({ pageParam, search: debouncedSearch, category }),
     getNextPageParam: (lastPage, allPages) => {
@@ -36,31 +38,51 @@ export const ProductList = () => {
     },
   });
 
-  const mutation = useMutation({
-    mutationKey: ["cart", 1],
-    mutationFn: addCart,
-    onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["cart", 1] as const});
-    },
-  })
+  const onHoverProduct = async (id: number) => {
+    // await queryClient.prefetchQuery({
+    //   queryKey: ["product", id],
+    //   queryFn: () => {
+    //     return fetchProductById(id);
+    //   },
+    //   staleTime: 1000 * 60 * 5
+    // });
+  };
 
-  const products:Product[] | unknown = productsQuery.data?.pages.flat() || [];
+  if (productsQuery.isLoading) {
+    return (
+      <div className={styles["products-skeleton"]}>
+        {Array(6)
+          .fill(0)
+          .map((_, index) => {
+            return (
+              <div key={index}>
+                <Skeleton width={300} height={100} />
+                <Skeleton width={250} height={50} />
+                <Skeleton width={30} height={20} />
+                <Skeleton width={40} height={20} />
+              </div>
+            );
+          })}
+      </div>
+    );
+  }
 
+  if (!productsQuery.data || !productsQuery.data?.pages?.flat().length) {
+    return <p>No products found</p>;
+  }
 
+  const products: Product[] | unknown = productsQuery.data?.pages.flat() || [];
 
   return (
     <div className={styles.container}>
-      <div className={styles['search-filter']}>
+      <div className={styles["search-filter"]}>
         <input
           type="text"
           placeholder="Search products"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
         />
-        <select
-          value={category}
-          onChange={e => setCategory(e.target.value)}
-        >
+        <select value={category} onChange={(e) => setCategory(e.target.value)}>
           <option value="">All Categories</option>
           {categoriesQuery.data?.map((cat: Category) => (
             <option key={cat.name} value={cat.slug}>
@@ -72,26 +94,26 @@ export const ProductList = () => {
 
       <div className={styles.grid}>
         {(products as Product[]).map((product: Product) => (
-          <div key={product.id} className={styles.card}>
-            <img src={product.images[0]} alt="image" />
-            <h3 onClick={() => navigate(`/product/${product.id}`)}>{product.title}</h3>
-            <p>${product.price}</p>
-            <button onClick={() => mutation.mutate({id: product.id, quantity: 1})}>Add to cart</button>
-          </div>
+          <SingleProduct
+            onHover={() => onHoverProduct(product.id)}
+            key={product.id}
+            product={product}
+          />
         ))}
       </div>
 
-      <div className={styles['load-more']}>
-        <button
+      <div className={styles["load-more"]}>
+        <Button
           onClick={() => productsQuery.fetchNextPage()}
-          disabled={!productsQuery.hasNextPage || productsQuery.isFetchingNextPage}
-        >
-          {productsQuery.isFetchingNextPage ? 'Loading...' : 'Load More'}
-        </button>
+          label="Load more"
+          loading={productsQuery.isFetchingNextPage}
+          disabled={
+            !productsQuery.hasNextPage || productsQuery.isFetchingNextPage
+          }
+        />
       </div>
     </div>
   );
 };
 
-
-export default ProductList
+export default ProductList;

@@ -1,0 +1,19 @@
+@import "../../../shared/styles/mixins";
+
+.card {
+  @include product-card;
+
+  img {
+    max-width: 100%;
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 0.875rem;
+    color: #444;
+  }
+}
